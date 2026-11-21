@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنجاز برو | Enjaz Pro — منصة إدارة المهام والمشاريع</title>
+
+    <!-- خط Cairo العربي العصري -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- مكتبة Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- إعدادات Tailwind لدعم الوضع الداكن والفاتح والخطوط -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        obsidian: '#090912',
+                        surface: '#111120',
+                        surfaceLight: '#18182E',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-up': 'slideUp 0.35s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(12px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* تأثيرات البطاقات الزجاجية في الوضع الداكن والفاتح */
+        .dark .glass-card {
+            background: rgba(17, 17, 32, 0.72);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+        }
+
+        .dark .glass-sidebar {
+            background: rgba(11, 11, 22, 0.92);
+            backdrop-filter: blur(22px);
+            border-left: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .glass-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        /* تدرجات الأزرار والنصوص */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #06B6D4 100%);
+            background-size: 200% 200%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-position: 100% 0;
+            box-shadow: 0 8px 25px -4px rgba(99, 102, 241, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .text-brand-gradient {
+            background: linear-gradient(135deg, #818CF8 0%, #C084FC 50%, #22D3EE 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* تأثيرات السحب والإفلات في لوحة كانبان */
+        .kanban-column.drag-over {
+            border-color: #6366F1 !important;
+            background: rgba(99, 102, 241, 0.08) !important;
+        }
+
+        .task-card.dragging {
+            opacity: 0.45;
+            transform: scale(0.98);
+        }
+
+        /* شريط التمرير المخصص */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.22);
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.3);
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
+        }
+
+        /* تنسيق شريط التمرير لنسبة إنجاز المشاريع */
+        input[type="range"] {
+            accent-color: #6366F1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-obsidian dark:text-slate-100 transition-colors duration-300 min-h-screen">
+
+    <!-- إضاءة خلفية ناعمة للوضع الداكن -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden hidden dark:block">
+        <div class="absolute -top-40 -right-40 w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[130px]"></div>
+        <div class="absolute top-1/2 -left-40 w-[420px] h-[420px] bg-cyan-500/10 rounded-full blur-[130px]"></div>
+        <div class="absolute -bottom-32 right-1/3 w-[380px] h-[380px] bg-violet-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <!-- إشعارات عائمة (Toast Container) -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-[100] flex flex-col gap-2.5 pointer-events-none max-w-sm"></div>
+
+    <!-- طبقة التعتيم لقائمة الموبايل -->
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
+
+    <!-- ========================================== -->
+    <!-- الهيكل الرئيسي: قائمة جانبية + محتوى -->
+    <!-- ========================================== -->
+    <div class="relative z-10 flex min-h-screen">
+
+        <!-- القائمة الجانبية (Sidebar) -->
+        <aside id="sidebar" class="fixed lg:sticky top-0 right-0 h-screen w-72 glass-sidebar z-50 flex flex-col justify-between transition-transform duration-300 translate-x-full lg:translate-x-0">
+            <div>
+                <!-- الشعار -->
+                <div class="h-20 px-6 flex items-center justify-between border-b border-slate-200/70 dark:border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl btn-primary flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-black tracking-tight leading-none">إنجاز <span class="text-brand-gradient">برو</span></h1>
+                            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Enjaz Pro Workspace</span>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileSidebar(false)" aria-label="إغلاق القائمة" class="lg:hidden p-2 rounded-xl hover:bg-slate-200/70 dark:hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- روابط التنقل -->
+                <nav class="p-4 space-y-1.5" id="sidebar-nav">
+                    <button data-view="dashboard" onclick="switchView('dashboard')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                            </svg>
+                            <span>لوحة التحكم</span>
+                        </span>
+                    </button>
+
+                    <button data-view="kanban" onclick="switchView('kanban')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
+                            </svg>
+                            <span>لوحة المهام</span>
+                        </span>
+                        <span id="nav-tasks-badge" class="px-2 py-0.5 text-[11px] rounded-full bg-indigo-500/15 text-indigo-500 dark:text-indigo-300 font-extrabold">0</span>
+                    </button>
+
+                    <button data-view="projects" onclick="switchView('projects')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                            </svg>
+                            <span>المشاريع والعملاء</span>
+                        </span>
+                        <span id="nav-projects-badge" class="px-2 py-0.5 text-[11px] rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 font-extrabold">0</span>
+                    </button>
+
+                    <button data-view="pomodoro" onclick="switchView('pomodoro')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>مؤقت التركيز</span>
+                        </span>
+                        <span id="nav-timer-dot" class="hidden w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    </button>
+
+                    <button data-view="notes" onclick="switchView('notes')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                            </svg>
+                            <span>الملاحظات السريعة</span>
+                        </span>
+                        <span id="nav-notes-badge" class="px-2 py-0.5 text-[11px] rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-300 font-extrabold">0</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- تذييل القائمة الجانبية: تصدير واستعادة البيانات -->
+            <div class="p-4 border-t border-slate-200/70 dark:border-white/10 space-y-2">
+                <button onclick="exportDataJSON()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-bold text-slate-700 dark:text-slate-200 transition-all">
+                    <svg class="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    <span>تصدير البيانات (JSON)</span>
+                </button>
+                <button onclick="openResetConfirmModal()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold text-rose-600 dark:text-rose-400 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    <span>استعادة البيانات التجريبية</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- المنطقة الرئيسية (Header + Views) -->
+        <div class="flex-1 flex flex-col min-w-0">
+
+            <!-- الشريط العلوي (Top Header) -->
+            <header class="sticky top-0 z-30 h-20 px-4 sm:px-6 lg:px-8 glass-card border-x-0 border-t-0 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 flex-1 max-w-xl">
+                    <!-- زر قائمة الموبايل -->
+                    <button onclick="toggleMobileSidebar(true)" aria-label="فتح القائمة" class="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
+
+                    <!-- البحث الشامل المباشر -->
+                    <div class="relative flex-1">
+                        <svg class="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                        <input
+                            id="global-search"
+                            type="text"
+                            placeholder="ابحث في المهام، المشاريع، أو الملاحظات..."
+                            class="w-full pr-10 pl-4 py-2.5 rounded-2xl bg-slate-100/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none text-xs sm:text-sm transition-all placeholder-slate-400"
+                        />
+                    </div>
+                </div>
+
+                <!-- أدوات الهيدر: التاريخ + الثيم + زر مهمة جديدة -->
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <!-- التاريخ العربي -->
+                    <div class="hidden xl:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        <svg class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                        <span id="arabic-date">--</span>
+                    </div>
+
+                    <!-- زر تبديل الوضع الداكن/الفاتح -->
+                    <button id="theme-toggle" onclick="toggleTheme()" aria-label="تبديل المظهر" class="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200/70 dark:border-white/10 transition-all">
+                        <!-- أيقونة الشمس (تظهر في الوضع الداكن) -->
+                        <svg class="w-5 h-5 text-amber-400 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                        </svg>
+                        <!-- أيقونة القمر (تظهر في الوضع الفاتح) -->
+                        <svg class="w-5 h-5 text-indigo-600 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                        </svg>
+                    </button>
+
+                    <!-- زر إضافة مهمة جديدة -->
+                    <button onclick="openTaskModal()" class="btn-primary px-3.5 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-white flex items-center gap-1.5 shadow-lg shadow-indigo-500/25 whitespace-nowrap">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span>مهمة جديدة</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- حاوية الصفحات (Views Container) -->
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
+
+                <!-- ========================================== -->
+                <!-- 1. لوحة التحكم (Dashboard View) -->
+                <!-- ========================================== -->
+                <section id="view-dashboard" class="view-section space-y-6 animate-fade-in">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-black">مرحباً بك في <span class="text-brand-gradient">إنجاز برو</span></h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">نظرة شاملة على إنتاجيتك، مهامك النشطة، وتقدم مشاريعك اليوم.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="switchView('kanban')" class="px-4 py-2 rounded-xl glass-card text-xs font-bold hover:border-indigo-500/50 transition-all">فتح لوحة كانبان</button>
+                            <button onclick="openProjectModal()" class="px-4 py-2 rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/25 text-xs font-bold hover:bg-cyan-500/25 transition-all">+ مشروع جديد</button>
+                        </div>
+                    </div>
+
+                    <!-- بطاقات الإحصائيات الـ 4 (KPIs) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                        <!-- إجمالي المهام -->
+                        <div class="glass-card rounded-3xl p-5 hover:-translate-y-1 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">إجمالي المهام</span>
+                                <div class="w-11 h-11 rounded-2xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between">
+                                <span id="kpi-total" class="text-3xl font-black">0</span>
+                                <span class="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg">جميع الحالات</span>
+                            </div>
+                        </div>
+
+                        <!-- قيد التنفيذ -->
+                        <div class="glass-card rounded-3xl p-5 hover:-translate-y-1 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">قيد التنفيذ</span>
+                                <div class="w-11 h-11 rounded-2xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between">
+                                <span id="kpi-progress" class="text-3xl font-black">0</span>
+                                <span class="text-[11px] font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-lg">نشطة حالياً</span>
+                            </div>
+                        </div>
+
+                        <!-- المهام المكتملة -->
+                        <div class="glass-card rounded-3xl p-5 hover:-translate-y-1 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">المهام المكتملة</span>
+                                <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between">
+                                <span id="kpi-done" class="text-3xl font-black">0</span>
+                                <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">تم الإنجاز</span>
+                            </div>
+                        </div>
+
+                        <!-- المهام العاجلة -->
+                        <div class="glass-card rounded-3xl p-5 hover:-translate-y-1 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">المهام العاجلة</span>
+                                <div class="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between">
+                                <span id="kpi-urgent" class="text-3xl font-black">0</span>
+                                <span class="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg">أولوية قصوى</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صف الرسوم البيانية ومعدل الإنجاز -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- مخطط الإنتاجية الأسبوعي -->
+                        <div class="lg:col-span-7 glass-card rounded-3xl p-6 flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-base font-extrabold">الإنتاجية الأسبوعية</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">عدد المهام المنجزة خلال أيام الأسبوع</p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/15 text-indigo-500 dark:text-indigo-300">تحديث مباشر</span>
+                            </div>
+                            <!-- أعمدة الرسم البياني التفاعلي -->
+                            <div id="weekly-chart" class="h-52 flex items-end justify-between gap-2 sm:gap-4 pt-6 px-2">
+                                <!-- تُبنى ديناميكياً -->
+                            </div>
+                        </div>
+
+                        <!-- معدل الإنجاز الدائري + التوزيع -->
+                        <div class="lg:col-span-5 glass-card rounded-3xl p-6 flex flex-col justify-between gap-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-base font-extrabold">معدل الإنجاز الكلي</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">نسبة المهام المكتملة من الإجمالي</p>
+                                </div>
+                                <span id="completion-text-badge" class="text-sm font-black text-emerald-500">0%</span>
+                            </div>
+
+                            <!-- المؤشر الدائري + شريط التقدم -->
+                            <div class="flex items-center gap-6">
+                                <div class="relative w-28 h-28 shrink-0">
+                                    <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="9" fill="none" class="text-slate-200 dark:text-white/10" />
+                                        <circle id="completion-ring" cx="50" cy="50" r="42" stroke="url(#ringGrad)" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="263.89" stroke-dashoffset="263.89" class="transition-all duration-700" />
+                                        <defs>
+                                            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#6366F1" />
+                                                <stop offset="100%" stop-color="#10B981" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span id="completion-ring-val" class="text-xl font-black">0%</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1 space-y-3">
+                                    <div>
+                                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                                            <span>تقدم المهام</span>
+                                            <span id="completion-ratio-text" class="text-slate-500 dark:text-slate-400">0 / 0</span>
+                                        </div>
+                                        <div class="w-full h-2.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                                            <div id="completion-bar" class="h-full rounded-full bg-gradient-to-l from-emerald-400 to-indigo-500 transition-all duration-700" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div id="priority-breakdown" class="grid grid-cols-3 gap-2 pt-1">
+                                        <!-- تفصيل الأولويات -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- توزيع التصنيفات -->
+                            <div class="pt-4 border-t border-slate-200/70 dark:border-white/10">
+                                <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3">توزيع المهام حسب التصنيف</h4>
+                                <div id="category-breakdown" class="flex flex-wrap gap-2">
+                                    <!-- تُبنى ديناميكياً -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صف المواعيد القادمة والمشاريع النشطة -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- المواعيد النهائية القادمة -->
+                        <div class="glass-card rounded-3xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-extrabold flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                    المواعيد النهائية القادمة
+                                </h3>
+                                <button onclick="switchView('kanban')" class="text-xs font-bold text-indigo-500 hover:underline">عرض الكل</button>
+                            </div>
+                            <div id="upcoming-deadlines" class="space-y-3">
+                                <!-- تُبنى ديناميكياً -->
+                            </div>
+                        </div>
+
+                        <!-- المشاريع النشطة -->
+                        <div class="glass-card rounded-3xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-extrabold flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                                    أبرز المشاريع النشطة
+                                </h3>
+                                <button onclick="switchView('projects')" class="text-xs font-bold text-cyan-500 hover:underline">إدارة المشاريع</button>
+                            </div>
+                            <div id="dashboard-projects" class="space-y-3.5">
+                                <!-- تُبنى ديناميكياً -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- 2. لوحة المهام (Kanban Board View) -->
+                <!-- ========================================== -->
+                <section id="view-kanban" class="view-section hidden space-y-6 animate-fade-in">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-black">لوحة المهام التفاعلية</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">اسحب البطاقات وأفلتها بين الأعمدة أو استخدم أزرار النقل السريع.</p>
+                        </div>
+
+                        <!-- شريط الفلترة -->
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <select id="filter-priority" onchange="renderKanban()" class="px-3.5 py-2 rounded-xl glass-card text-xs font-bold outline-none focus:border-indigo-500 dark:bg-surface">
+                                <option value="all">كل الأولويات</option>
+                                <option value="high">عاجل</option>
+                                <option value="medium">متوسط</option>
+                                <option value="low">عادي</option>
+                            </select>
+
+                            <select id="filter-category" onchange="renderKanban()" class="px-3.5 py-2 rounded-xl glass-card text-xs font-bold outline-none focus:border-indigo-500 dark:bg-surface">
+                                <option value="all">كل التصنيفات</option>
+                                <option value="برمجة">برمجة</option>
+                                <option value="تصميم">تصميم</option>
+                                <option value="تسويق">تسويق</option>
+                                <option value="عملاء">عملاء</option>
+                                <option value="إداري">إداري</option>
+                            </select>
+
+                            <button onclick="resetKanbanFilters()" class="px-3.5 py-2 rounded-xl bg-slate-200/80 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/15 text-xs font-bold transition-all">إعادة ضبط</button>
+                        </div>
+                    </div>
+
+                    <!-- أعمدة كانبان الـ 3 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                        <!-- عمود 1: قيد الانتظار -->
+                        <div data-status="todo" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'todo')" class="kanban-column glass-card rounded-3xl p-4 min-h-[420px] transition-all">
+                            <div class="flex items-center justify-between mb-4 px-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+                                    <h3 class="text-sm font-extrabold">قيد الانتظار</h3>
+                                </div>
+                                <span id="count-todo" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-slate-200 dark:bg-white/10">0</span>
+                            </div>
+                            <div id="col-todo" class="space-y-3.5"></div>
+                        </div>
+
+                        <!-- عمود 2: جاري التنفيذ -->
+                        <div data-status="in-progress" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'in-progress')" class="kanban-column glass-card rounded-3xl p-4 min-h-[420px] transition-all">
+                            <div class="flex items-center justify-between mb-4 px-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+                                    <h3 class="text-sm font-extrabold">جاري التنفيذ</h3>
+                                </div>
+                                <span id="count-in-progress" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">0</span>
+                            </div>
+                            <div id="col-in-progress" class="space-y-3.5"></div>
+                        </div>
+
+                        <!-- عمود 3: مكتمل -->
+                        <div data-status="done" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'done')" class="kanban-column glass-card rounded-3xl p-4 min-h-[420px] transition-all">
+                            <div class="flex items-center justify-between mb-4 px-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                    <h3 class="text-sm font-extrabold">مكتمل</h3>
+                                </div>
+                                <span id="count-done" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">0</span>
+                            </div>
+                            <div id="col-done" class="space-y-3.5"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- 3. المشاريع والعملاء (Projects View) -->
+                <!-- ========================================== -->
+                <section id="view-projects" class="view-section hidden space-y-6 animate-fade-in">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-black">المشاريع والعملاء</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">تابع ميزانياتك، مواعيد التسليم، ونسبة إنجاز كل مشروع بشكل تفاعلي.</p>
+                        </div>
+                        <button onclick="openProjectModal()" class="btn-primary px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-white inline-flex items-center gap-2 self-start sm:self-auto">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            <span>إضافة مشروع جديد</span>
+                        </button>
+                    </div>
+
+                    <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <!-- تُبنى ديناميكياً -->
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- 4. مؤقت التركيز (Pomodoro Timer View) -->
+                <!-- ========================================== -->
+                <section id="view-pomodoro" class="view-section hidden animate-fade-in">
+                    <div class="max-w-2xl mx-auto space-y-6">
+                        <div class="text-center">
+                            <h2 class="text-2xl sm:text-3xl font-black">مؤقت التركيز العميق</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">استخدم تقنية بومودورو لإنجاز مهامك بأعلى تركيز بدون تشتيت.</p>
+                        </div>
+
+                        <div class="glass-card rounded-3xl p-6 sm:p-10 text-center space-y-7">
+                            <!-- أزرار أوضاع المؤقت -->
+                            <div class="inline-flex p-1.5 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 gap-1">
+                                <button data-mode="focus" onclick="setTimerMode('focus')" class="timer-mode-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all">تركيز (25د)</button>
+                                <button data-mode="short" onclick="setTimerMode('short')" class="timer-mode-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all">استراحة قصيرة (5د)</button>
+                                <button data-mode="long" onclick="setTimerMode('long')" class="timer-mode-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all">استراحة طويلة (15د)</button>
+                            </div>
+
+                            <!-- الدائرة التفاعلية للعداد -->
+                            <div class="relative w-64 h-64 mx-auto">
+                                <svg class="w-full h-full -rotate-90" viewBox="0 0 220 220">
+                                    <circle cx="110" cy="110" r="96" stroke="currentColor" stroke-width="10" fill="none" class="text-slate-200 dark:text-white/10" />
+                                    <circle id="timer-progress-ring" cx="110" cy="110" r="96" stroke="url(#timerGrad)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="603.18" stroke-dashoffset="0" class="transition-all duration-500" />
+                                    <defs>
+                                        <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#6366F1" />
+                                            <stop offset="50%" stop-color="#8B5CF6" />
+                                            <stop offset="100%" stop-color="#06B6D4" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="timer-display" class="text-5xl sm:text-6xl font-black tracking-wider tabular-nums">25:00</span>
+                                    <span id="timer-mode-label" class="text-xs font-bold text-indigo-500 dark:text-cyan-400 mt-2">جلسة تركيز</span>
+                                </div>
+                            </div>
+
+                            <!-- ربط الجلسة بمهمة نشطة -->
+                            <div class="max-w-md mx-auto text-right">
+                                <label for="timer-task-select" class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">ربط الجلسة بمهمة حالية:</label>
+                                <select id="timer-task-select" class="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/10 text-xs sm:text-sm font-bold outline-none focus:border-indigo-500">
+                                    <option value="">— بدون ربط بمهمة محددة —</option>
+                                </select>
+                            </div>
+
+                            <!-- أزرار التحكم -->
+                            <div class="flex items-center justify-center gap-3">
+                                <button id="timer-start-btn" onclick="toggleTimer()" class="btn-primary px-8 py-3.5 rounded-2xl text-sm font-extrabold text-white min-w-[140px] flex items-center justify-center gap-2">
+                                    <svg id="timer-play-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                    <span id="timer-start-text">ابدأ الجلسة</span>
+                                </button>
+                                <button onclick="resetTimer()" class="px-5 py-3.5 rounded-2xl bg-slate-200/80 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/15 text-sm font-bold transition-all">إعادة ضبط</button>
+                            </div>
+
+                            <!-- إحصائية الجلسات اليومية -->
+                            <div class="pt-5 border-t border-slate-200/70 dark:border-white/10 flex items-center justify-center gap-6 text-xs sm:text-sm">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                    <span class="text-slate-500 dark:text-slate-400">الجلسات المكتملة اليوم:</span>
+                                    <strong id="pomodoro-sessions-count" class="text-base font-black text-emerald-500">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- 5. الملاحظات السريعة (Quick Notes View) -->
+                <!-- ========================================== -->
+                <section id="view-notes" class="view-section hidden space-y-6 animate-fade-in">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-black">الملاحظات السريعة</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">دوّن أفكارك، ملخصات الاجتماعات، والملاحظات المهمة وثبّت ما تريد في الأعلى.</p>
+                        </div>
+                    </div>
+
+                    <!-- نموذج إضافة ملاحظة سريعة -->
+                    <form id="note-form" onsubmit="handleAddNote(event)" class="glass-card rounded-3xl p-5 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input id="note-title" type="text" required placeholder="عنوان الملاحظة..." class="md:col-span-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500" />
+                            <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">اللون:</span>
+                                <div class="flex items-center gap-2" id="note-color-picker">
+                                    <button type="button" data-color="indigo" onclick="selectNoteColor('indigo')" class="note-color-dot w-6 h-6 rounded-full bg-indigo-500 ring-2 ring-offset-2 ring-indigo-500 dark:ring-offset-obsidian"></button>
+                                    <button type="button" data-color="cyan" onclick="selectNoteColor('cyan')" class="note-color-dot w-6 h-6 rounded-full bg-cyan-500"></button>
+                                    <button type="button" data-color="emerald" onclick="selectNoteColor('emerald')" class="note-color-dot w-6 h-6 rounded-full bg-emerald-500"></button>
+                                    <button type="button" data-color="amber" onclick="selectNoteColor('amber')" class="note-color-dot w-6 h-6 rounded-full bg-amber-500"></button>
+                                    <button type="button" data-color="rose" onclick="selectNoteColor('rose')" class="note-color-dot w-6 h-6 rounded-full bg-rose-500"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <textarea id="note-content" rows="2" required placeholder="اكتب تفاصيل الملاحظة هنا..." class="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm outline-none focus:border-indigo-500 resize-none"></textarea>
+                            <button type="submit" class="btn-primary px-6 py-3 rounded-xl text-sm font-extrabold text-white self-end sm:self-stretch flex items-center justify-center gap-2 whitespace-nowrap">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span>حفظ الملاحظة</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- شبكة الملاحظات -->
+                    <div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        <!-- تُبنى ديناميكياً -->
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- النوافذ المنبثقة (Modals) -->
+    <!-- ========================================== -->
+
+    <!-- 1. نافذة إضافة / تعديل مهمة -->
+    <div id="task-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm">
+        <div class="glass-card bg-white dark:bg-[#121224] w-full max-w-lg rounded-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up">
+            <div class="flex items-center justify-between mb-5">
+                <h3 id="task-modal-title" class="text-lg font-black">إضافة مهمة جديدة</h3>
+                <button onclick="closeTaskModal()" class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="task-form" onsubmit="handleSaveTask(event)" class="space-y-4">
+                <input type="hidden" id="task-id" />
+
+                <div>
+                    <label class="block text-xs font-bold mb-1.5">عنوان المهمة *</label>
+                    <input id="task-title" type="text" required placeholder="مثال: تصميم واجهة الصفحة الرئيسية" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold mb-1.5">الوصف المختصر</label>
+                    <textarea id="task-desc" rows="2" placeholder="تفاصيل إضافية حول المهمة..." class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm outline-none focus:border-indigo-500 resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5">الحالة</label>
+                        <select id="task-status" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500">
+                            <option value="todo">قيد الانتظار</option>
+                            <option value="in-progress">جاري التنفيذ</option>
+                            <option value="done">مكتمل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5">الأولوية</label>
+                        <select id="task-priority" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500">
+                            <option value="high">عاجل</option>
+                            <option value="medium" selected>متوسط</option>
+                            <option value="low">عادي</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5">التصنيف</label>
+                        <select id="task-category" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500">
+                            <option value="برمجة">برمجة</option>
+                            <option value="تصميم">تصميم</option>
+                            <option value="تسويق">تسويق</option>
+                            <option value="عملاء">عملاء</option>
+                            <option value="إداري">إداري</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5">تاريخ التسليم</label>
+                        <input id="task-due" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500" />
+                    </div>
+                </div>
+
+                <!-- المهام الفرعية (Subtasks) -->
+                <div>
+                    <label class="block text-xs font-bold mb-1.5">المهام الفرعية (اختياري)</label>
+                    <div class="flex gap-2 mb-2.5">
+                        <input id="new-subtask-input" type="text" placeholder="أضف خطوة فرعية..." class="flex-1 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs outline-none focus:border-indigo-500" />
+                        <button type="button" onclick="addSubtaskToForm()" class="px-4 py-2 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-500/25">إضافة</button>
+                    </div>
+                    <div id="modal-subtasks-list" class="space-y-2 max-h-32 overflow-y-auto"></div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-white/10">
+                    <button type="button" onclick="closeTaskModal()" class="px-5 py-2.5 rounded-xl bg-slate-200/80 dark:bg-white/10 text-xs font-bold">إلغاء</button>
+                    <button type="submit" class="btn-primary px-6 py-2.5 rounded-xl text-xs font-extrabold text-white">حفظ المهمة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. نافذة إضافة مشروع جديد -->
+    <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm">
+        <div class="glass-card bg-white dark:bg-[#121224] w-full max-w-md rounded-3xl p-6 shadow-2xl animate-slide-up">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-black">إضافة مشروع جديد</h3>
+                <button onclick="closeProjectModal()" class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="project-form" onsubmit="handleSaveProject(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold mb-1.5">اسم المشروع *</label>
+                    <input id="proj-name" type="text" required placeholder="مثال: تطوير متجر إلكتروني" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1.5">اسم العميل / الجهة *</label>
+                    <input id="proj-client" type="text" required placeholder="مثال: شركة الأفق للتقنية" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5">الحالة</label>
+                        <select id="proj-status" class="w-full px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/10 text-sm font-bold outline-none">
+                            <option value="نشط">نشط</option>
+                            <option value="قيد المراجعة">قيد المراجعة</option>
+                            <option value="مكتمل">مكتمل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5">الميزانية ($)</label>
+                        <input id="proj-budget" type="number" min="0" required placeholder="450" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1.5">موعد التسليم</label>
+                    <input id="proj-deadline" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold outline-none focus:border-indigo-500" />
+                </div>
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-white/10">
+                    <button type="button" onclick="closeProjectModal()" class="px-5 py-2.5 rounded-xl bg-slate-200/80 dark:bg-white/10 text-xs font-bold">إلغاء</button>
+                    <button type="submit" class="btn-primary px-6 py-2.5 rounded-xl text-xs font-extrabold text-white">إضافة المشروع</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. نافذة تأكيد استعادة البيانات التجريبية (بديل أنيق لـ confirm) -->
+    <div id="reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm">
+        <div class="glass-card bg-white dark:bg-[#121224] w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center animate-slide-up">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-black mb-2">استعادة البيانات التجريبية؟</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                سيتم استبدال بياناتك الحالية بالبيانات الافتراضية الجاهزة للعرض. يمكنك تصدير نسخة JSON أولاً إن رغبت.
+            </p>
+            <div class="flex items-center justify-center gap-3">
+                <button onclick="closeResetConfirmModal()" class="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-white/10 text-xs font-bold">تراجع</button>
+                <button onclick="confirmResetDemoData()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold">نعم، استعادة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- المنطق البرمجي الكامل للتطبيق (JavaScript) -->
+    <!-- ========================================== -->
+    <script>
+        // ==========================================
+        // 1. البيانات الافتراضية (Sample Data) وإدارة الحالة
+        // ==========================================
+        const STORAGE_KEY = 'enjaz_pro_workspace_v1';
+
+        function getRelativeDate(daysOffset) {
+            const d = new Date();
+            d.setDate(d.getDate() + daysOffset);
+            return d.toISOString().split('T')[0];
+        }
+
+        function createDefaultState() {
+            return {
+                theme: 'dark',
+                activeView: 'dashboard',
+                tasks: [
+                    {
+                        id: 't1',
+                        title: 'تصميم واجهة موقع منصة ذكاء اصطناعي',
+                        desc: 'بناء صفحة هبوط متكاملة بوضع داكن وتأثيرات زجاجية مع توافق كامل للموبايل.',
+                        status: 'in-progress',
+                        priority: 'high',
+                        category: 'تصميم',
+                        dueDate: getRelativeDate(1),
+                        subtasks: [
+                            { text: 'تحديد لوحة الألوان والخطوط', done: true },
+                            { text: 'تصميم قسم الاستوديو التفاعلي', done: true },
+                            { text: 'اختبار التجاوب على الموبايل', done: false }
+                        ]
+                    },
+                    {
+                        id: 't2',
+                        title: 'إعداد تقرير تحليل جودة فيديوهات AI',
+                        desc: 'رصد التشوهات البصرية وخلل الحركة وتلخيص التوصيات في عرض تقديمي احترافي.',
+                        status: 'done',
+                        priority: 'medium',
+                        category: 'عملاء',
+                        dueDate: getRelativeDate(-1),
+                        subtasks: [
+                            { text: 'جمع النماذج والأمثلة', done: true },
+                            { text: 'تصميم شريحة الملخص النهائي', done: true }
+                        ]
+                    },
+                    {
+                        id: 't3',
+                        title: 'برمجة لوحة تحكم إدارة المهام (Kanban)',
+                        desc: 'تطوير نظام سحب وإفلات وحفظ محلي للبيانات مع مؤقت بومودورو مدمج.',
+                        status: 'in-progress',
+                        priority: 'high',
+                        category: 'برمجة',
+                        dueDate: getRelativeDate(2),
+                        subtasks: [
+                            { text: 'هيكل الأعمدة والفلترة', done: true },
+                            { text: 'ربط LocalStorage وتصدير JSON', done: false }
+                        ]
+                    },
+                    {
+                        id: 't4',
+                        title: 'إطلاق حملة تسويقية لخدمات العمل الحر',
+                        desc: 'كتابة وصف احترافي للخدمات وتجهيز صور غلاف جذابة لمنصة خمسات.',
+                        status: 'todo',
+                        priority: 'medium',
+                        category: 'تسويق',
+                        dueDate: getRelativeDate(4),
+                        subtasks: [
+                            { text: 'تصميم صور الغلاف بمقاس 800×470', done: false },
+                            { text: 'كتابة تطويرات الخدمة والأسعار', done: false }
+                        ]
+                    },
+                    {
+                        id: 't5',
+                        title: 'مراجعة عقود ومواعيد تسليم العملاء',
+                        desc: 'تنظيم جدول التسليمات الأسبوعي والتأكد من استلام الدفعات المجدولة.',
+                        status: 'todo',
+                        priority: 'low',
+                        category: 'إداري',
+                        dueDate: getRelativeDate(5),
+                        subtasks: []
+                    },
+                    {
+                        id: 't6',
+                        title: 'رفع معرض الأعمال على GitHub Pages',
+                        desc: 'نشر المشاريع التجريبية على روابط رسمية وإضافتها للسيرة الذاتية.',
+                        status: 'done',
+                        priority: 'high',
+                        category: 'برمجة',
+                        dueDate: getRelativeDate(0),
+                        subtasks: [
+                            { text: 'تسمية الملف الرئيسي index.html', done: true },
+                            { text: 'تفعيل Pages على فرع main', done: true }
+                        ]
+                    }
+                ],
+                projects: [
+                    {
+                        id: 'p1',
+                        name: 'منصة خيال AI لتوليد الصور',
+                        client: 'استوديو إبداع الرقمي',
+                        status: 'نشط',
+                        deadline: getRelativeDate(6),
+                        budget: 450,
+                        progress: 78
+                    },
+                    {
+                        id: 'p2',
+                        name: 'تطوير الهوية البصرية والموقع التعريفي',
+                        client: 'شركة المدار للتقنية',
+                        status: 'قيد المراجعة',
+                        deadline: getRelativeDate(2),
+                        budget: 620,
+                        progress: 92
+                    },
+                    {
+                        id: 'p3',
+                        name: 'نظام إدارة محتوى وتقارير ذكاء اصطناعي',
+                        client: 'أكاديمية المستقبل',
+                        status: 'مكتمل',
+                        deadline: getRelativeDate(-3),
+                        budget: 380,
+                        progress: 100
+                    }
+                ],
+                notes: [
+                    {
+                        id: 'n1',
+                        title: 'نقاط اجتماع العميل الجديد',
+                        content: 'التركيز على سرعة تحميل الصفحة، استخدام الوضع الداكن بشكل افتراضي، وتسليم النسخة التجريبية يوم الخميس.',
+                        color: 'indigo',
+                        pinned: true,
+                        createdAt: getRelativeDate(0)
+                    },
+                    {
+                        id: 'n2',
+                        title: 'أفكار تطوير معرض الأعمال',
+                        content: 'إضافة فيديو قصير 30 ثانية لكل مشروع يوضح التفاعلات، ووضع رابط المعاينة الحية في أول سطر.',
+                        color: 'cyan',
+                        pinned: true,
+                        createdAt: getRelativeDate(-1)
+                    },
+                    {
+                        id: 'n3',
+                        title: 'قائمة مراجعة قبل التسليم',
+                        content: 'اختبار الموقع على شاشة الموبايل، التأكد من عدم وجود أخطاء في Console، وضغط الصور لسرعة أعلى.',
+                        color: 'emerald',
+                        pinned: false,
+                        createdAt: getRelativeDate(-2)
+                    }
+                ],
+                weeklyProductivity: [3, 5, 4, 7, 6, 4, 5],
+                pomodoro: {
+                    sessionsToday: 3,
+                    lastDate: getRelativeDate(0)
+                }
+            };
+        }
+
+        let state = loadState();
+        let currentSearchQuery = '';
+        let modalSubtasks = [];
+        let selectedNoteColor = 'indigo';
+        let draggedTaskId = null;
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return createDefaultState();
+                const parsed = JSON.parse(raw);
+                // تحديث عداد البومودورو إذا تغير اليوم
+                const today = getRelativeDate(0);
+                if (parsed.pomodoro && parsed.pomodoro.lastDate !== today) {
+                    parsed.pomodoro.sessionsToday = 0;
+                    parsed.pomodoro.lastDate = today;
+                }
+                return parsed;
+            } catch (e) {
+                return createDefaultState();
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                showToast('تعذر حفظ البيانات محلياً', 'error');
+            }
+        }
+
+        // ==========================================
+        // 2. الإشعارات العائمة (Toast) والتنقل والثيم
+        // ==========================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const styles = {
+                success: 'bg-emerald-600 text-white border-emerald-400/40',
+                error: 'bg-rose-600 text-white border-rose-400/40',
+                info: 'bg-slate-900 dark:bg-[#1A1A32] text-white border-indigo-500/40'
+            };
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-2xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all duration-300 translate-y-4 opacity-0 ${styles[type] || styles.info}`;
+            toast.innerHTML = `
+                <span class="w-2 h-2 rounded-full bg-white/90 shrink-0"></span>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function applyTheme() {
+            const html = document.documentElement;
+            if (state.theme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            applyTheme();
+            saveState();
+            showToast(state.theme === 'dark' ? 'تم تفعيل الوضع الداكن' : 'تم تفعيل الوضع الفاتح', 'info');
+        }
+
+        function toggleMobileSidebar(open) {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (open) {
+                sidebar.classList.remove('translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        function switchView(viewName) {
+            state.activeView = viewName;
+            saveState();
+
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            const activeSec = document.getElementById(`view-${viewName}`);
+            if (activeSec) activeSec.classList.remove('hidden');
+
+            // تحديث حالة أزرار القائمة الجانبية
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                if (btn.dataset.view === viewName) {
+                    btn.className = 'nav-item w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-extrabold transition-all bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/25';
+                } else {
+                    btn.className = 'nav-item w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white';
+                }
+            });
+
+            toggleMobileSidebar(false);
+            renderAll();
+        }
+
+        // تحديث التاريخ العربي في الهيدر
+        function updateArabicDate() {
+            const now = new Date();
+            const formatted = new Intl.DateTimeFormat('ar-EG', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).format(now);
+            document.getElementById('arabic-date').textContent = formatted;
+        }
+
+        // البحث الشامل
+        document.getElementById('global-search').addEventListener('input', (e) => {
+            currentSearchQuery = e.target.value.trim().toLowerCase();
+            renderAll();
+        });
+
+        // ==========================================
+        // 3. عرض لوحة التحكم (Dashboard)
+        // ==========================================
+        function renderDashboard() {
+            const total = state.tasks.length;
+            const inProgress = state.tasks.filter(t => t.status === 'in-progress').length;
+            const done = state.tasks.filter(t => t.status === 'done').length;
+            const urgent = state.tasks.filter(t => t.priority === 'high' && t.status !== 'done').length;
+            const rate = total === 0 ? 0 : Math.round((done / total) * 100);
+
+            document.getElementById('kpi-total').textContent = total;
+            document.getElementById('kpi-progress').textContent = inProgress;
+            document.getElementById('kpi-done').textContent = done;
+            document.getElementById('kpi-urgent').textContent = urgent;
+
+            // الدائرة وشريط التقدم
+            document.getElementById('completion-text-badge').textContent = `${rate}%`;
+            document.getElementById('completion-ring-val').textContent = `${rate}%`;
+            document.getElementById('completion-ratio-text').textContent = `${done} / ${total}`;
+            document.getElementById('completion-bar').style.width = `${rate}%`;
+
+            const circumference = 263.89;
+            const offset = circumference - (rate / 100) * circumference;
+            document.getElementById('completion-ring').style.strokeDashoffset = offset;
+
+            // تفصيل الأولويات
+            const pHigh = state.tasks.filter(t => t.priority === 'high').length;
+            const pMed = state.tasks.filter(t => t.priority === 'medium').length;
+            const pLow = state.tasks.filter(t => t.priority === 'low').length;
+            document.getElementById('priority-breakdown').innerHTML = `
+                <div class="p-2 rounded-xl bg-rose-500/10 text-center">
+                    <span class="block text-[10px] font-bold text-rose-500">عاجل</span>
+                    <strong class="text-sm font-black">${pHigh}</strong>
+                </div>
+                <div class="p-2 rounded-xl bg-amber-500/10 text-center">
+                    <span class="block text-[10px] font-bold text-amber-500">متوسط</span>
+                    <strong class="text-sm font-black">${pMed}</strong>
+                </div>
+                <div class="p-2 rounded-xl bg-emerald-500/10 text-center">
+                    <span class="block text-[10px] font-bold text-emerald-500">عادي</span>
+                    <strong class="text-sm font-black">${pLow}</strong>
+                </div>
+            `;
+
+            // تفصيل التصنيفات
+            const categories = ['برمجة', 'تصميم', 'تسويق', 'عملاء', 'إداري'];
+            document.getElementById('category-breakdown').innerHTML = categories.map(cat => {
+                const count = state.tasks.filter(t => t.category === cat).length;
+                return `
+                    <span class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10 text-xs font-bold flex items-center gap-1.5">
+                        <span>${cat}</span>
+                        <span class="px-1.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 text-[10px] font-black">${count}</span>
+                    </span>
+                `;
+            }).join('');
+
+            // الرسم البياني الأسبوعي (Pure CSS/HTML التفاعلي)
+            const days = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+            const values = [...state.weeklyProductivity];
+            // عكس المهام المنجزة على آخر يوم
+            values[values.length - 1] = Math.max(values[values.length - 1], done);
+            const maxVal = Math.max(...values, 6);
+
+            document.getElementById('weekly-chart').innerHTML = values.map((val, i) => {
+                const heightPct = Math.max(14, Math.round((val / maxVal) * 100));
+                const isPeak = val === Math.max(...values);
+                return `
+                    <div class="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
+                        <span class="text-[11px] font-extrabold text-indigo-500 dark:text-cyan-400 opacity-75 group-hover:opacity-100 transition-opacity">${val}</span>
+                        <div class="w-full max-w-[38px] rounded-t-xl transition-all duration-500 relative overflow-hidden ${isPeak ? 'bg-gradient-to-t from-indigo-600 via-violet-500 to-cyan-400 shadow-lg shadow-indigo-500/30' : 'bg-indigo-500/25 dark:bg-indigo-500/30 group-hover:bg-indigo-500/60'}" style="height: ${heightPct}%"></div>
+                        <span class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400">${days[i]}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // المواعيد النهائية القادمة
+            const upcoming = state.tasks
+                .filter(t => t.status !== 'done')
+                .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+                .slice(0, 4);
+
+            const upcomingEl = document.getElementById('upcoming-deadlines');
+            if (upcoming.length === 0) {
+                upcomingEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">لا توجد مهام معلقة حالياً. عمل رائع!</p>`;
+            } else {
+                upcomingEl.innerHTML = upcoming.map(t => `
+                    <div onclick="openTaskModal('${t.id}')" class="cursor-pointer p-3.5 rounded-2xl bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/70 dark:hover:bg-white/10 transition-all flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <h4 class="text-xs sm:text-sm font-extrabold truncate">${escapeHtml(t.title)}</h4>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400">${t.category} • ${formatDateShort(t.dueDate)}</span>
+                        </div>
+                        ${getPriorityBadge(t.priority)}
+                    </div>
+                `).join('');
+            }
+
+            // أبرز المشاريع النشطة
+            const dashProjectsEl = document.getElementById('dashboard-projects');
+            const activeProjects = state.projects.slice(0, 3);
+            if (activeProjects.length === 0) {
+                dashProjectsEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">لا توجد مشاريع مضافة بعد.</p>`;
+            } else {
+                dashProjectsEl.innerHTML = activeProjects.map(p => `
+                    <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-white/5 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                <h4 class="text-xs sm:text-sm font-extrabold truncate">${escapeHtml(p.name)}</h4>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400">${escapeHtml(p.client)}</span>
+                            </div>
+                            <span class="text-xs font-black text-indigo-500 dark:text-cyan-400">${p.progress}%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-l from-cyan-400 to-indigo-500 transition-all" style="width: ${p.progress}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ==========================================
+        // 4. لوحة المهام (Kanban Board) + السحب والإفلات
+        // ==========================================
+        function getPriorityBadge(priority) {
+            if (priority === 'high') {
+                return `<span class="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">عاجل</span>`;
+            }
+            if (priority === 'medium') {
+                return `<span class="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">متوسط</span>`;
+            }
+            return `<span class="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">عادي</span>`;
+        }
+
+        function renderKanban() {
+            const pFilter = document.getElementById('filter-priority').value;
+            const cFilter = document.getElementById('filter-category').value;
+
+            const filtered = state.tasks.filter(t => {
+                const matchP = pFilter === 'all' || t.priority === pFilter;
+                const matchC = cFilter === 'all' || t.category === cFilter;
+                const matchQ = !currentSearchQuery ||
+                    t.title.toLowerCase().includes(currentSearchQuery) ||
+                    (t.desc && t.desc.toLowerCase().includes(currentSearchQuery)) ||
+                    t.category.toLowerCase().includes(currentSearchQuery);
+                return matchP && matchC && matchQ;
+            });
+
+            const columns = ['todo', 'in-progress', 'done'];
+            columns.forEach(status => {
+                const colTasks = filtered.filter(t => t.status === status);
+                document.getElementById(`count-${status}`).textContent = colTasks.length;
+                const colEl = document.getElementById(`col-${status}`);
+
+                if (colTasks.length === 0) {
+                    colEl.innerHTML = `
+                        <div class="border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-6 text-center text-xs text-slate-400">
+                            لا توجد مهام في هذا العمود
+                        </div>
+                    `;
+                    return;
+                }
+
+                colEl.innerHTML = colTasks.map(task => {
+                    const totalSubs = task.subtasks ? task.subtasks.length : 0;
+                    const doneSubs = task.subtasks ? task.subtasks.filter(s => s.done).length : 0;
+                    const subPct = totalSubs > 0 ? Math.round((doneSubs / totalSubs) * 100) : 0;
+
+                    return `
+                        <article
+                            draggable="true"
+                            ondragstart="handleDragStart(event, '${task.id}')"
+                            ondragend="handleDragEnd(event)"
+                            class="task-card p-4 rounded-2xl bg-white dark:bg-surfaceLight/80 border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-indigo-500/50 transition-all cursor-grab active:cursor-grabbing space-y-3"
+                        >
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    ${getPriorityBadge(task.priority)}
+                                    <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">${task.category}</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openTaskModal('${task.id}')" title="تعديل" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-indigo-500 transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+                                        </svg>
+                                    </button>
+                                    <button onclick="deleteTask('${task.id}')" title="حذف" class="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="text-sm font-extrabold leading-snug mb-1">${escapeHtml(task.title)}</h4>
+                                ${task.desc ? `<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(task.desc)}</p>` : ''}
+                            </div>
+
+                            ${totalSubs > 0 ? `
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                        <span>المهام الفرعية</span>
+                                        <span>${doneSubs}/${totalSubs}</span>
+                                    </div>
+                                    <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                                        <div class="h-full rounded-full bg-indigo-500 transition-all" style="width: ${subPct}%"></div>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <div class="pt-2.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-2">
+                                <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5" />
+                                    </svg>
+                                    ${formatDateShort(task.dueDate)}
+                                </span>
+
+                                <!-- أزرار النقل السريع بين الأعمدة -->
+                                <div class="flex items-center gap-1">
+                                    ${status !== 'todo' ? `
+                                        <button onclick="moveTaskStep('${task.id}', -1)" title="إرجاع للعمود السابق" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-indigo-500/20 text-[10px] font-bold transition-colors">→</button>
+                                    ` : ''}
+                                    ${status !== 'done' ? `
+                                        <button onclick="moveTaskStep('${task.id}', 1)" title="نقل للعمود التالي" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-emerald-500/20 text-[10px] font-bold transition-colors">←</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleDragStart(e, taskId) {
+            draggedTaskId = taskId;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('drag-over'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, newStatus) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            if (!draggedTaskId) return;
+
+            const task = state.tasks.find(t => t.id === draggedTaskId);
+            if (task && task.status !== newStatus) {
+                task.status = newStatus;
+                saveState();
+                renderAll();
+                showToast('تم نقل المهمة بنجاح', 'success');
+            }
+            draggedTaskId = null;
+        }
+
+        function moveTaskStep(taskId, direction) {
+            const order = ['todo', 'in-progress', 'done'];
+            const task = state.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            const nextIdx = order.indexOf(task.status) + direction;
+            if (nextIdx >= 0 && nextIdx < order.length) {
+                task.status = order[nextIdx];
+                saveState();
+                renderAll();
+                showToast('تم تحديث حالة المهمة', 'success');
+            }
+        }
+
+        function resetKanbanFilters() {
+            document.getElementById('filter-priority').value = 'all';
+            document.getElementById('filter-category').value = 'all';
+            document.getElementById('global-search').value = '';
+            currentSearchQuery = '';
+            renderKanban();
+        }
+
+        // ==========================================
+        // 5. نافذة إضافة وتعديل المهام
+        // ==========================================
+        function openTaskModal(taskId = null) {
+            const modal = document.getElementById('task-modal');
+            const titleEl = document.getElementById('task-modal-title');
+            document.getElementById('task-form').reset();
+            modalSubtasks = [];
+
+            if (taskId) {
+                const task = state.tasks.find(t => t.id === taskId);
+                if (!task) return;
+                titleEl.textContent = 'تعديل المهمة';
+                document.getElementById('task-id').value = task.id;
+                document.getElementById('task-title').value = task.title;
+                document.getElementById('task-desc').value = task.desc || '';
+                document.getElementById('task-status').value = task.status;
+                document.getElementById('task-priority').value = task.priority;
+                document.getElementById('task-category').value = task.category;
+                document.getElementById('task-due').value = task.dueDate;
+                modalSubtasks = task.subtasks ? task.subtasks.map(s => ({ ...s })) : [];
+            } else {
+                titleEl.textContent = 'إضافة مهمة جديدة';
+                document.getElementById('task-id').value = '';
+                document.getElementById('task-due').value = getRelativeDate(2);
+            }
+
+            renderModalSubtasks();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeTaskModal() {
+            const modal = document.getElementById('task-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function addSubtaskToForm() {
+            const input = document.getElementById('new-subtask-input');
+            const text = input.value.trim();
+            if (!text) return;
+            modalSubtasks.push({ text, done: false });
+            input.value = '';
+            renderModalSubtasks();
+        }
+
+        function toggleModalSubtask(idx) {
+            modalSubtasks[idx].done = !modalSubtasks[idx].done;
+            renderModalSubtasks();
+        }
+
+        function removeModalSubtask(idx) {
+            modalSubtasks.splice(idx, 1);
+            renderModalSubtasks();
+        }
+
+        function renderModalSubtasks() {
+            const container = document.getElementById('modal-subtasks-list');
+            container.innerHTML = modalSubtasks.map((s, idx) => `
+                <div class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer flex-1">
+                        <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleModalSubtask(${idx})" class="rounded accent-indigo-500" />
+                        <span class="${s.done ? 'line-through text-slate-400' : ''}">${escapeHtml(s.text)}</span>
+                    </label>
+                    <button type="button" onclick="removeModalSubtask(${idx})" class="text-rose-500 hover:text-rose-400 font-bold">×</button>
+                </div>
+            `).join('');
+        }
+
+        function handleSaveTask(e) {
+            e.preventDefault();
+            const id = document.getElementById('task-id').value;
+            const taskData = {
+                id: id || 't_' + Date.now(),
+                title: document.getElementById('task-title').value.trim(),
+                desc: document.getElementById('task-desc').value.trim(),
+                status: document.getElementById('task-status').value,
+                priority: document.getElementById('task-priority').value,
+                category: document.getElementById('task-category').value,
+                dueDate: document.getElementById('task-due').value,
+                subtasks: modalSubtasks
+            };
+
+            if (id) {
+                const idx = state.tasks.findIndex(t => t.id === id);
+                if (idx !== -1) state.tasks[idx] = taskData;
+                showToast('تم تحديث المهمة بنجاح', 'success');
+            } else {
+                state.tasks.unshift(taskData);
+                showToast('تمت إضافة المهمة الجديدة', 'success');
+            }
+
+            saveState();
+            closeTaskModal();
+            renderAll();
+        }
+
+        function deleteTask(taskId) {
+            state.tasks = state.tasks.filter(t => t.id !== taskId);
+            saveState();
+            renderAll();
+            showToast('تم حذف المهمة', 'info');
+        }
+
+        // ==========================================
+        // 6. إدارة المشاريع والعملاء (Projects Tracker)
+        // ==========================================
+        function renderProjects() {
+            const grid = document.getElementById('projects-grid');
+            const filtered = state.projects.filter(p =>
+                !currentSearchQuery ||
+                p.name.toLowerCase().includes(currentSearchQuery) ||
+                p.client.toLowerCase().includes(currentSearchQuery)
+            );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full glass-card rounded-3xl p-10 text-center text-sm text-slate-400">لا توجد مشاريع مطابقة حالياً.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(proj => {
+                const statusStyle = proj.status === 'مكتمل'
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                    : proj.status === 'قيد المراجعة'
+                    ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                    : 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/20';
+
+                return `
+                    <article class="glass-card rounded-3xl p-6 flex flex-col justify-between gap-5 hover:border-indigo-500/40 transition-all">
+                        <div class="space-y-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="px-3 py-1 rounded-full text-[11px] font-extrabold border ${statusStyle}">${proj.status}</span>
+                                <button onclick="deleteProject('${proj.id}')" title="حذف المشروع" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black leading-snug">${escapeHtml(proj.name)}</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">العميل: <strong class="text-slate-700 dark:text-slate-200">${escapeHtml(proj.client)}</strong></p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-slate-100/90 dark:bg-white/5 text-xs">
+                                <div>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400">الميزانية</span>
+                                    <strong class="text-sm font-black text-emerald-600 dark:text-emerald-400">$${proj.budget}</strong>
+                                </div>
+                                <div>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400">موعد التسليم</span>
+                                    <strong class="text-xs font-extrabold">${formatDateShort(proj.deadline)}</strong>
+                                </div>
+                            </div>
+
+                            <!-- شريط التقدم التفاعلي -->
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between text-xs font-bold">
+                                    <span class="text-slate-500 dark:text-slate-400">نسبة الإنجاز</span>
+                                    <span class="text-indigo-600 dark:text-cyan-400 font-black">${proj.progress}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value="${proj.progress}"
+                                    oninput="updateProjectProgress('${proj.id}', this.value)"
+                                    class="w-full h-2 rounded-lg cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function openProjectModal() {
+            document.getElementById('project-form').reset();
+            document.getElementById('proj-deadline').value = getRelativeDate(10);
+            const modal = document.getElementById('project-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeProjectModal() {
+            const modal = document.getElementById('project-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function handleSaveProject(e) {
+            e.preventDefault();
+            const status = document.getElementById('proj-status').value;
+            const newProj = {
+                id: 'p_' + Date.now(),
+                name: document.getElementById('proj-name').value.trim(),
+                client: document.getElementById('proj-client').value.trim(),
+                status: status,
+                budget: Number(document.getElementById('proj-budget').value) || 0,
+                deadline: document.getElementById('proj-deadline').value,
+                progress: status === 'مكتمل' ? 100 : 15
+            };
+            state.projects.unshift(newProj);
+            saveState();
+            closeProjectModal();
+            renderAll();
+            showToast('تمت إضافة المشروع بنجاح', 'success');
+        }
+
+        function updateProjectProgress(projId, val) {
+            const proj = state.projects.find(p => p.id === projId);
+            if (!proj) return;
+            proj.progress = Number(val);
+            if (proj.progress === 100) proj.status = 'مكتمل';
+            else if (proj.status === 'مكتمل') proj.status = 'نشط';
+            saveState();
+            renderProjects();
+            renderDashboard();
+        }
+
+        function deleteProject(projId) {
+            state.projects = state.projects.filter(p => p.id !== projId);
+            saveState();
+            renderAll();
+            showToast('تم حذف المشروع', 'info');
+        }
+
+        // ==========================================
+        // 7. مؤقت التركيز (Pomodoro) + Web Audio API Chime
+        // ==========================================
+        const TIMER_MODES = {
+            focus: { label: 'جلسة تركيز', seconds: 25 * 60 },
+            short: { label: 'استراحة قصيرة', seconds: 5 * 60 },
+            long: { label: 'استراحة طويلة', seconds: 15 * 60 }
+        };
+
+        let timerMode = 'focus';
+        let timerSecondsLeft = TIMER_MODES.focus.seconds;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        function playCompletionChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioCtx();
+                const notes = [523.25, 659.25, 783.99, 1046.5];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.14);
+                    gain.gain.setValueAtTime(0.001, ctx.currentTime + i * 0.14);
+                    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + i * 0.14 + 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.14 + 0.45);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.14);
+                    osc.stop(ctx.currentTime + i * 0.14 + 0.46);
+                });
+            } catch (e) {
+                // تجاهل في حال حظر الصوت
+            }
+        }
+
+        function setTimerMode(mode) {
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+            }
+            timerMode = mode;
+            timerSecondsLeft = TIMER_MODES[mode].seconds;
+            updateTimerUI();
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                updateTimerUI();
+                return;
+            }
+
+            isTimerRunning = true;
+            updateTimerUI();
+
+            timerInterval = setInterval(() => {
+                timerSecondsLeft--;
+                if (timerSecondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    timerSecondsLeft = 0;
+                    playCompletionChime();
+
+                    if (timerMode === 'focus') {
+                        state.pomodoro.sessionsToday++;
+                        state.pomodoro.lastDate = getRelativeDate(0);
+                        saveState();
+                        showToast('أحسنت! اكتملت جلسة التركيز بنجاح', 'success');
+                    } else {
+                        showToast('انتهت الاستراحة، جاهز للعودة للعمل!', 'info');
+                    }
+                    timerSecondsLeft = TIMER_MODES[timerMode].seconds;
+                }
+                updateTimerUI();
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSecondsLeft = TIMER_MODES[timerMode].seconds;
+            updateTimerUI();
+        }
+
+        function updateTimerUI() {
+            const mins = String(Math.floor(timerSecondsLeft / 60)).padStart(2, '0');
+            const secs = String(timerSecondsLeft % 60).padStart(2, '0');
+            document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+            document.getElementById('timer-mode-label').textContent = TIMER_MODES[timerMode].label;
+            document.getElementById('timer-start-text').textContent = isTimerRunning ? 'إيقاف مؤقت' : 'ابدأ الجلسة';
+            document.getElementById('pomodoro-sessions-count').textContent = state.pomodoro.sessionsToday;
+
+            // نقطة خضراء في القائمة الجانبية عند تشغيل المؤقت
+            const navDot = document.getElementById('nav-timer-dot');
+            navDot.classList.toggle('hidden', !isTimerRunning);
+
+            // تحديث الدائرة
+            const total = TIMER_MODES[timerMode].seconds;
+            const ringLen = 603.18;
+            const offset = ringLen - (timerSecondsLeft / total) * ringLen;
+            document.getElementById('timer-progress-ring').style.strokeDashoffset = offset;
+
+            // أزرار الأوضاع
+            document.querySelectorAll('.timer-mode-btn').forEach(btn => {
+                if (btn.dataset.mode === timerMode) {
+                    btn.className = 'timer-mode-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all bg-indigo-600 text-white shadow-md';
+                } else {
+                    btn.className = 'timer-mode-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+                }
+            });
+        }
+
+        function populateTimerTasks() {
+            const select = document.getElementById('timer-task-select');
+            const currentVal = select.value;
+            const activeTasks = state.tasks.filter(t => t.status !== 'done');
+            select.innerHTML = `<option value="">— بدون ربط بمهمة محددة —</option>` +
+                activeTasks.map(t => `<option value="${t.id}">${escapeHtml(t.title)}</option>`).join('');
+            select.value = currentVal;
+        }
+
+        // ==========================================
+        // 8. الملاحظات السريعة (Quick Notes)
+        // ==========================================
+        function selectNoteColor(color) {
+            selectedNoteColor = color;
+            document.querySelectorAll('.note-color-dot').forEach(dot => {
+                dot.classList.remove('ring-2', 'ring-offset-2', 'dark:ring-offset-obsidian', 'ring-indigo-500', 'ring-cyan-500', 'ring-emerald-500', 'ring-amber-500', 'ring-rose-500');
+                if (dot.dataset.color === color) {
+                    dot.classList.add('ring-2', 'ring-offset-2', 'dark:ring-offset-obsidian', `ring-${color}-500`);
+                }
+            });
+        }
+
+        function handleAddNote(e) {
+            e.preventDefault();
+            const title = document.getElementById('note-title').value.trim();
+            const content = document.getElementById('note-content').value.trim();
+            if (!title || !content) return;
+
+            state.notes.unshift({
+                id: 'n_' + Date.now(),
+                title,
+                content,
+                color: selectedNoteColor,
+                pinned: false,
+                createdAt: getRelativeDate(0)
+            });
+
+            document.getElementById('note-form').reset();
+            saveState();
+            renderAll();
+            showToast('تم حفظ الملاحظة', 'success');
+        }
+
+        function togglePinNote(noteId) {
+            const note = state.notes.find(n => n.id === noteId);
+            if (!note) return;
+            note.pinned = !note.pinned;
+            saveState();
+            renderNotes();
+            showToast(note.pinned ? 'تم تثبيت الملاحظة في الأعلى' : 'تم إلغاء التثبيت', 'info');
+        }
+
+        function deleteNote(noteId) {
+            state.notes = state.notes.filter(n => n.id !== noteId);
+            saveState();
+            renderAll();
+            showToast('تم حذف الملاحظة', 'info');
+        }
+
+        function renderNotes() {
+            const grid = document.getElementById('notes-grid');
+            const colorMap = {
+                indigo: 'border-indigo-500/40 bg-indigo-500/10 dark:bg-indigo-500/10',
+                cyan: 'border-cyan-500/40 bg-cyan-500/10 dark:bg-cyan-500/10',
+                emerald: 'border-emerald-500/40 bg-emerald-500/10 dark:bg-emerald-500/10',
+                amber: 'border-amber-500/40 bg-amber-500/10 dark:bg-amber-500/10',
+                rose: 'border-rose-500/40 bg-rose-500/10 dark:bg-rose-500/10'
+            };
+
+            const sorted = [...state.notes]
+                .filter(n => !currentSearchQuery ||
+                    n.title.toLowerCase().includes(currentSearchQuery) ||
+                    n.content.toLowerCase().includes(currentSearchQuery))
+                .sort((a, b) => Number(b.pinned) - Number(a.pinned));
+
+            if (sorted.length === 0) {
+                grid.innerHTML = `<div class="col-span-full glass-card rounded-3xl p-10 text-center text-sm text-slate-400">لا توجد ملاحظات حالياً.</div>`;
+                return;
+            }
+
+            grid.innerHTML = sorted.map(note => `
+                <article class="rounded-3xl p-5 border backdrop-blur-md flex flex-col justify-between gap-4 transition-all hover:-translate-y-1 ${colorMap[note.color] || colorMap.indigo}">
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-2.5">
+                            <h3 class="text-sm font-black leading-snug">${escapeHtml(note.title)}</h3>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button onclick="togglePinNote('${note.id}')" title="${note.pinned ? 'إلغاء التثبيت' : 'تثبيت'}" class="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 ${note.pinned ? 'text-amber-500' : 'text-slate-400'}">
+                                    <svg class="w-4 h-4" fill="${note.pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                                    </svg>
+                                </button>
+                                <button onclick="deleteNote('${note.id}')" title="حذف" class="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">${escapeHtml(note.content)}</p>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 pt-2 border-t border-black/5 dark:border-white/10">
+                        <span>${formatDateShort(note.createdAt)}</span>
+                        ${note.pinned ? `<span class="text-amber-500">مثبتة ★</span>` : ''}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        // ==========================================
+        // 9. تصدير JSON واستعادة البيانات التجريبية وأدوات مساعدة
+        // ==========================================
+        function exportDataJSON() {
+            const dataStr = JSON.stringify(state, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `enjaz-pro-backup-${getRelativeDate(0)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('تم تصدير ملف النسخة الاحتياطية بنجاح', 'success');
+        }
+
+        function openResetConfirmModal() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeResetConfirmModal() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function confirmResetDemoData() {
+            const currentTheme = state.theme;
+            state = createDefaultState();
+            state.theme = currentTheme;
+            saveState();
+            closeResetConfirmModal();
+            renderAll();
+            showToast('تمت استعادة البيانات التجريبية بنجاح', 'success');
+        }
+
+        function formatDateShort(dateStr) {
+            if (!dateStr) return '--';
+            try {
+                const d = new Date(dateStr + 'T00:00:00');
+                return new Intl.DateTimeFormat('ar-EG', { day: 'numeric', month: 'short' }).format(d);
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function updateNavBadges() {
+            document.getElementById('nav-tasks-badge').textContent = state.tasks.length;
+            document.getElementById('nav-projects-badge').textContent = state.projects.length;
+            document.getElementById('nav-notes-badge').textContent = state.notes.length;
+        }
+
+        function renderAll() {
+            updateNavBadges();
+            renderDashboard();
+            renderKanban();
+            renderProjects();
+            renderNotes();
+            populateTimerTasks();
+            updateTimerUI();
+        }
+
+        // ==========================================
+        // 10. التشغيل الأولي للتطبيق
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            applyTheme();
+            updateArabicDate();
+            switchView(state.activeView || 'dashboard');
+        });
+    </script>
+</body>
+</html>
